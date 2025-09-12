@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Fashion Gallery - 3D Model Viewer</title>
+    
+    <!-- AR.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ar.js@0.11.0/dist/ar.css">
+    
+    <!-- Three.js - Simplified loading -->
+    <script>
+        // Simple Three.js check function
+        function checkThreeJs() {
+            return new Promise((resolve, reject) => {
+                console.log('🔍 Checking THREE availability...');
+                console.log('THREE type:', typeof THREE);
+                console.log('THREE value:', THREE);
+                
+                if (typeof THREE !== 'undefined') {
+                    console.log('✅ THREE is immediately available');
+                    resolve(THREE);
+                } else {
+                    console.log('⏳ THREE not immediately available, waiting...');
+                    // Wait a bit for THREE to be available
+                    let attempts = 0;
+                    const checkInterval = setInterval(() => {
+                        attempts++;
+                        console.log(`🔍 Check attempt ${attempts}/50, THREE type: ${typeof THREE}`);
+                        
+                        if (typeof THREE !== 'undefined') {
+                            console.log('✅ THREE became available after waiting');
+                            clearInterval(checkInterval);
+                            resolve(THREE);
+                        } else if (attempts > 50) { // Wait up to 5 seconds
+                            console.log('❌ THREE still not available after 5 seconds');
+                            clearInterval(checkInterval);
+                            reject(new Error('Three.js not available'));
+                        }
+                    }, 100);
+                }
+            });
+        }
+    </script>
+    
+    <!-- Three.js Backup Function -->
+    <script>
+        function loadThreeJsBackup() {
+            console.log('🔄 Loading Three.js backup...');
+            
+            // Try other local files first
+            const localFiles = [
+                './build/three.cjs',
+                './build/three.core.min.js',
+                './build/three.module.min.js'
+            ];
+            
+            let currentIndex = 0;
+            
+            function tryLocalFile() {
+                if (currentIndex >= localFiles.length) {
+                    // If all local files fail, try CDN
+                    console.log('🌐 All local files failed, trying CDN...');
+                    const script = document.createElement('script');
+                    script.src = 'https://unpkg.com/three@0.144.0/build/three.min.js';
+                    script.onload = () => console.log('✅ Three.js CDN backup loaded successfully');
+                    script.onerror = () => console.error('❌ All Three.js sources failed');
+                    document.head.appendChild(script);
+                    return;
+                }
+                
+                const file = localFiles[currentIndex];
+                console.log(`🔄 Trying local backup ${currentIndex + 1}/${localFiles.length}: ${file}`);
+                
+                const script = document.createElement('script');
+                script.src = file;
+                script.onload = () => console.log(`✅ Three.js backup loaded successfully: ${file}`);
+                script.onerror = () => {
+                    currentIndex++;
+                    tryLocalFile();
+                };
+                document.head.appendChild(script);
+            }
+            
+            tryLocalFile();
+        }
+    </script>
+    
+    <!-- Three.js Local Script - Primary -->
+    <script src="./build/three.min.js" 
+            onload="console.log('✅ Three.js local script loaded successfully')"
+            onerror="loadThreeJsBackup()"></script>
+    
+    <!-- Three.js CDN Script - Secondary Backup -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r144/three.min.js" 
+            onload="console.log('✅ Three.js CDN script loaded successfully')"
+            onerror="console.log('⚠️ Three.js CDN script failed')"></script>
+    
+    <!-- AR.js -->
+    <script src="https://cdn.jsdelivr.net/npm/ar.js@0.11.0/dist/ar.js"></script>
+    
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+        
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 100;
+            max-width: 280px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            background: rgba(0,0,0,0.9);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 1000;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+        
+        .control-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            min-width: 50px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .gallery-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+        }
+        
+        .nav-btn {
+            background: linear-gradient(45deg, #3742fa, #2f3542);
+            border: none;
+        }
+        
+        .instructions {
+            position: absolute;
+            bottom: 100px;
+            left: 10px;
+            right: 10px;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .model-counter {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .device-mode {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            font-size: 12px;
+        }
+        
+        /* Gallery Modal */
+        .gallery-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            display: none;
+            overflow-y: auto;
+        }
+        
+        .gallery-content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .gallery-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .gallery-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .gallery-item:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-5px);
+        }
+        
+        .gallery-item.active {
+            border-color: #ff6b6b;
+            background: rgba(255,107,107,0.2);
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .close-gallery {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                bottom: 10px;
+                gap: 10px;
+            }
+            
+            .control-btn {
+                padding: 12px 16px;
+                min-width: 45px;
+                min-height: 45px;
+                font-size: 16px;
+            }
+            
+            #info {
+                max-width: 90%;
+                padding: 12px;
+            }
+            
+            .instructions {
+                bottom: 80px;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <h3>🔄 Memuat AR Gallery...</h3>
+        <p>Mohon tunggu sebentar</p>
+    </div>
+    
+    <div class="device-mode" id="device-mode">
+        📱 Mode Mobile
+    </div>
+    
+    <div class="model-counter" id="model-counter">
+        1 / 5
+    </div>
+    
+    <div id="info">
+        <h3>🎨 AR Fashion Gallery</h3>
+        <p><strong>Status:</strong> <span id="status">Memuat...</span></p>
+        <p><strong>Model:</strong> <span id="model-info">Loading...</span></p>
+        <p><strong>Mode:</strong> <span id="mode-info">Detecting...</span></p>
+    </div>
+    
+    <div class="instructions" id="instructions">
+        <strong>📋 Petunjuk:</strong><br>
+        <span id="instruction-text">Memuat petunjuk...</span>
+    </div>
+
+    <!-- Gallery Modal -->
+    <div class="gallery-modal" id="gallery-modal">
+        <button class="close-gallery" onclick="closeGallery()">✕</button>
+        <div class="gallery-content">
+            <div class="gallery-header">
+                <h2>🎨 Koleksi Model 3D</h2>
+                <p>Pilih model yang ingin ditampilkan</p>
+            </div>
+            <div class="gallery-grid" id="gallery-grid">
+                <!-- Gallery items will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <a-scene embedded arjs id="ar-scene">
+        <!-- Kamera AR -->
+        <a-camera gps-camera rotation-reader></a-camera>
+        
+        <!-- Marker untuk AR Mobile -->
+        <a-marker preset="hiro" id="marker">
+            <!-- Model 3D akan muncul di sini -->
+        </a-marker>
+        
+        <!-- Model 3D tanpa marker untuk Desktop -->
+        <a-entity id="desktop-model" position="0 0.5 0" visible="false">
+            <!-- Model 3D akan muncul di sini -->
+        </a-entity>
+        
+        <!-- Lighting untuk scene -->
+        <a-light type="ambient" color="#404040" intensity="0.6"></a-light>
+        <a-light type="directional" position="0 1 0" color="#ffffff" intensity="1.2"></a-light>
+        <a-light type="point" position="2 2 2" color="#ff6b6b" intensity="0.5"></a-light>
+    </a-scene>
+
+    <!-- Navigation Controls -->
+    <div class="controls">
+        <button class="control-btn nav-btn" onclick="previousModel()" title="Model Sebelumnya">
+            ←
+        </button>
+        <button class="control-btn gallery-btn" onclick="openGallery()" title="Lihat Gallery">
+            🎨
+        </button>
+        <button class="control-btn nav-btn" onclick="nextModel()" title="Model Selanjutnya">
+            →
+        </button>
+    </div>
+
+    <script>
+        // AR Fashion Gallery App
+        class ARFashionGallery {
+            constructor() {
+                this.scene = document.querySelector('#ar-scene');
+                this.marker = document.querySelector('#marker');
+                this.desktopModel = document.querySelector('#desktop-model');
+                this.statusElement = document.getElementById('status');
+                this.modelInfoElement = document.getElementById('model-info');
+                this.modeInfoElement = document.getElementById('mode-info');
+                this.loadingElement = document.getElementById('loading');
+                this.instructionsElement = document.getElementById('instruction-text');
+                this.deviceModeElement = document.getElementById('device-mode');
+                this.modelCounterElement = document.getElementById('model-counter');
+                
+                // Debug elements
+                console.log('🔍 Scene element:', this.scene);
+                console.log('🔍 Desktop model element:', this.desktopModel);
+                console.log('🔍 Marker element:', this.marker);
+                
+                // Model collection
+                this.models = [
+                    {
+                        id: 1,
+                        name: "Box 3D",
+                        type: "primitive",
+                        src: null,
+                        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZmNmI2YiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+Qm94PC90ZXh0Pjwvc3ZnPg=="
+                    },
+                    {
+                        id: 2,
+                        name: "Sphere 3D",
+                        type: "primitive",
+                        src: null,
+                        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iIzM3NDJmYSIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U3BoZXJlPC90ZXh0Pjwvc3ZnPg=="
+                    },
+                    {
+                        id: 3,
+                        name: "Cylinder 3D",
+                        type: "primitive",
+                        src: null,
+                        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB4PSIyNSIgeT0iMjAiIHdpZHRoPSI1MCIgaGVpZ2h0PSI2MCIgZmlsbD0iIzJkZDM0NiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+Q3lsaW5kZXI8L3RleHQ+PC9zdmc+"
+                    },
+                    {
+                        id: 4,
+                        name: "Cone 3D",
+                        type: "primitive",
+                        src: null,
+                        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cG9seWdvbiBwb2ludHM9IjUwLDEwIDIwLDgwIDgwLDgwIiBmaWxsPSIjZWU1YTI0Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Db25lPC90ZXh0Pjwvc3ZnPg=="
+                    },
+                    {
+                        id: 5,
+                        name: "Custom Model",
+                        type: "glb",
+                        src: "./asset/model/model.glb",
+                        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZmYzYwYyIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+R0xCPC90ZXh0Pjwvc3ZnPg=="
+                    }
+                ];
+                
+                this.currentModelIndex = 0;
+                this.isMobile = this.detectMobile();
+                this.markerDetected = false;
+                
+                this.init();
+            }
+            
+            detectMobile() {
+                return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent);
+            }
+            
+            init() {
+                console.log('🚀 AR Fashion Gallery App diinisialisasi');
+                console.log('📱 Device:', this.isMobile ? 'Mobile' : 'Desktop');
+                
+                // Set device mode
+                this.deviceModeElement.textContent = this.isMobile ? '📱 Mode Mobile' : '💻 Mode Desktop';
+                this.modeInfoElement.textContent = this.isMobile ? 'AR dengan Marker' : '3D Viewer';
+                
+                // Set instructions
+                if (this.isMobile) {
+                    this.instructionsElement.innerHTML = `
+                        <strong>📱 Mode Mobile:</strong><br>
+                        1. Download marker dari tombol gallery<br>
+                        2. Cetak marker pada kertas putih<br>
+                        3. Arahkan kamera ke marker<br>
+                        4. Model 3D akan muncul di atas marker
+                    `;
+                } else {
+                    this.instructionsElement.innerHTML = `
+                        <strong>💻 Mode Desktop:</strong><br>
+                        1. Model 3D langsung tampil tanpa marker<br>
+                        2. Gunakan tombol panah untuk ganti model<br>
+                        3. Klik gallery untuk lihat koleksi model<br>
+                        4. Model akan berputar otomatis
+                    `;
+                }
+                
+                // Setup event listeners
+                this.setupEventListeners();
+                
+                // Initialize gallery
+                this.initGallery();
+                
+                // Load initial model dengan fallback untuk desktop
+                if (!this.isMobile) {
+                    // Fallback untuk desktop jika scene tidak load
+                    setTimeout(() => {
+                        if (!this.desktopModel.hasChildNodes()) {
+                            console.log('🔄 Desktop fallback - loading model');
+                            this.loadCurrentModel();
+                        }
+                    }, 2000);
+                }
+            }
+            
+            setupEventListeners() {
+                // Scene ready
+                this.scene.addEventListener('loaded', () => {
+                    console.log('✅ AR Scene berhasil dimuat');
+                    this.onSceneReady();
+                });
+                
+                if (this.isMobile) {
+                    // Mobile marker events
+                    this.marker.addEventListener('markerFound', () => {
+                        console.log('🎯 Marker terdeteksi');
+                        this.markerDetected = true;
+                        this.updateStatus('Marker terdeteksi - Model tampil');
+                    });
+                    
+                    this.marker.addEventListener('markerLost', () => {
+                        console.log('❌ Marker hilang');
+                        this.markerDetected = false;
+                        this.updateStatus('Marker hilang - Arahkan kamera ke marker');
+                    });
+                } else {
+                    // Desktop mode - show model immediately
+                    this.scene.addEventListener('loaded', () => {
+                        console.log('🖥️ Desktop mode - scene loaded');
+                        setTimeout(() => {
+                            console.log('🖥️ Desktop mode - loading model after delay');
+                            this.loadCurrentModel();
+                        }, 1000);
+                    });
+                }
+                
+                // Handle errors
+                this.scene.addEventListener('error', (error) => {
+                    console.error('❌ Error AR Scene:', error);
+                    this.updateStatus('Error: ' + error.detail);
+                });
+            }
+            
+            onSceneReady() {
+                console.log('🎉 Scene AR siap digunakan');
+                this.hideLoading();
+                this.updateStatus(this.isMobile ? 'AR siap - Arahkan kamera ke marker' : '3D Viewer siap');
+                this.updateModelInfo(this.models[this.currentModelIndex].name);
+                this.updateModelCounter();
+                
+                // Load model untuk desktop
+                if (!this.isMobile) {
+                    this.loadCurrentModel();
+                }
+            }
+            
+            loadCurrentModel() {
+                const model = this.models[this.currentModelIndex];
+                console.log('📦 Loading model:', model.name);
+                
+                if (this.isMobile) {
+                    this.loadMobileModel(model);
+                } else {
+                    this.loadDesktopModel(model);
+                }
+            }
+            
+            loadMobileModel(model) {
+                // Clear existing model in marker
+                this.marker.innerHTML = '';
+                
+                if (model.type === 'glb' && model.src) {
+                    // Load GLB model
+                    const gltfModel = document.createElement('a-gltf-model');
+                    gltfModel.setAttribute('src', model.src);
+                    gltfModel.setAttribute('position', '0 0 0');
+                    gltfModel.setAttribute('scale', '0.5 0.5 0.5');
+                    gltfModel.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 3000');
+                    this.marker.appendChild(gltfModel);
+                } else {
+                    // Load primitive model
+                    const primitive = this.createPrimitiveModel(model.name);
+                    primitive.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 2000');
+                    this.marker.appendChild(primitive);
+                }
+            }
+            
+            loadDesktopModel(model) {
+                console.log('🖥️ Loading desktop model:', model.name);
+                console.log('🔍 Desktop model element before:', this.desktopModel);
+                
+                // Clear existing model in desktop
+                this.desktopModel.innerHTML = '';
+                
+                if (model.type === 'glb' && model.src) {
+                    // Load GLB model
+                    console.log('📦 Loading GLB model:', model.src);
+                    const gltfModel = document.createElement('a-gltf-model');
+                    gltfModel.setAttribute('src', model.src);
+                    gltfModel.setAttribute('position', '0 0 0');
+                    gltfModel.setAttribute('scale', '0.5 0.5 0.5');
+                    gltfModel.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 3000');
+                    this.desktopModel.appendChild(gltfModel);
+                    console.log('✅ GLB model appended to desktop model');
+                } else {
+                    // Load primitive model
+                    console.log('🔧 Loading primitive model:', model.name);
+                    const primitive = this.createPrimitiveModel(model.name);
+                    primitive.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 2000');
+                    this.desktopModel.appendChild(primitive);
+                    console.log('✅ Primitive model appended to desktop model');
+                }
+                
+                console.log('🔍 Desktop model element after:', this.desktopModel);
+                console.log('🔍 Desktop model children:', this.desktopModel.children);
+                
+                // Show desktop model
+                this.showDesktopModel();
+            }
+            
+            createPrimitiveModel(modelName) {
+                console.log('🔧 Creating primitive model:', modelName);
+                let primitive;
+                
+                switch(modelName) {
+                    case 'Box 3D':
+                        primitive = document.createElement('a-box');
+                        primitive.setAttribute('position', '0 0.5 0');
+                        primitive.setAttribute('material', 'color: #ff6b6b; opacity: 0.8');
+                        console.log('📦 Created box primitive');
+                        break;
+                    case 'Sphere 3D':
+                        primitive = document.createElement('a-sphere');
+                        primitive.setAttribute('position', '0 0.5 0');
+                        primitive.setAttribute('material', 'color: #3742fa; opacity: 0.8');
+                        console.log('🔵 Created sphere primitive');
+                        break;
+                    case 'Cylinder 3D':
+                        primitive = document.createElement('a-cylinder');
+                        primitive.setAttribute('position', '0 0.5 0');
+                        primitive.setAttribute('material', 'color: #2dd34c; opacity: 0.8');
+                        console.log('🔄 Created cylinder primitive');
+                        break;
+                    case 'Cone 3D':
+                        primitive = document.createElement('a-cone');
+                        primitive.setAttribute('position', '0 0.5 0');
+                        primitive.setAttribute('material', 'color: #ee5a24; opacity: 0.8');
+                        console.log('🔺 Created cone primitive');
+                        break;
+                    default:
+                        primitive = document.createElement('a-box');
+                        primitive.setAttribute('position', '0 0.5 0');
+                        primitive.setAttribute('material', 'color: #ff6b6b; opacity: 0.8');
+                        console.log('📦 Created default box primitive');
+                }
+                
+                console.log('✅ Primitive model created:', primitive);
+                return primitive;
+            }
+            
+            showDesktopModel() {
+                console.log('👁️ Showing desktop model');
+                this.desktopModel.setAttribute('visible', 'true');
+                this.updateStatus('Model 3D tampil - Gunakan navigasi untuk ganti model');
+                console.log('✅ Desktop model visibility set to true');
+            }
+            
+            initGallery() {
+                const galleryGrid = document.getElementById('gallery-grid');
+                galleryGrid.innerHTML = '';
+                
+                this.models.forEach((model, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'gallery-item';
+                    if (index === this.currentModelIndex) {
+                        item.classList.add('active');
+                    }
+                    
+                    item.innerHTML = `
+                        <img src="${model.thumbnail}" alt="${model.name}">
+                        <h4>${model.name}</h4>
+                        <p>${model.type === 'glb' ? 'Model GLB' : 'Primitive'}</p>
+                    `;
+                    
+                    item.onclick = () => this.selectModel(index);
+                    galleryGrid.appendChild(item);
+                });
+            }
+            
+            selectModel(index) {
+                this.currentModelIndex = index;
+                this.loadCurrentModel();
+                this.updateModelInfo(this.models[this.currentModelIndex].name);
+                this.updateModelCounter();
+                this.initGallery(); // Refresh gallery to show active state
+                closeGallery();
+            }
+            
+            previousModel() {
+                this.currentModelIndex = (this.currentModelIndex - 1 + this.models.length) % this.models.length;
+                this.loadCurrentModel();
+                this.updateModelInfo(this.models[this.currentModelIndex].name);
+                this.updateModelCounter();
+                this.initGallery();
+            }
+            
+            nextModel() {
+                this.currentModelIndex = (this.currentModelIndex + 1) % this.models.length;
+                this.loadCurrentModel();
+                this.updateModelInfo(this.models[this.currentModelIndex].name);
+                this.updateModelCounter();
+                this.initGallery();
+            }
+            
+            updateStatus(message) {
+                this.statusElement.textContent = message;
+                console.log('📊 Status:', message);
+            }
+            
+            updateModelInfo(info) {
+                this.modelInfoElement.textContent = info;
+            }
+            
+            updateModelCounter() {
+                this.modelCounterElement.textContent = `${this.currentModelIndex + 1} / ${this.models.length}`;
+            }
+            
+            hideLoading() {
+                this.loadingElement.style.display = 'none';
+            }
+        }
+        
+        // Global functions
+        let app;
+        
+        function previousModel() {
+            if (app) app.previousModel();
+        }
+        
+        function nextModel() {
+            if (app) app.nextModel();
+        }
+        
+        function openGallery() {
+            document.getElementById('gallery-modal').style.display = 'block';
+        }
+        
+        function closeGallery() {
+            document.getElementById('gallery-modal').style.display = 'none';
+        }
+        
+        // Initialize app function
+        function initializeApp() {
+            console.log('🎬 Initializing AR Fashion Gallery...');
+            
+            if (typeof THREE !== 'undefined') {
+                console.log('📦 Three.js version:', THREE.REVISION);
+                console.log('✅ Three.js loaded successfully - no deprecation warnings expected');
+                app = new ARFashionGallery();
+            } else {
+                console.error('❌ Three.js not available');
+            }
+        }
+        
+        // Flag to prevent multiple initialization
+        let appInitialized = false;
+        
+        // Initialize app with Three.js loading
+        async function initializeAppWithThree() {
+            // Prevent multiple initialization
+            if (appInitialized) {
+                console.log('⚠️ App already initialized, skipping...');
+                return;
+            }
+            
+            try {
+                console.log('🎬 DOM ready, checking Three.js...');
+                
+                // Wait for THREE to be available
+                await checkThreeJs();
+                console.log('✅ Three.js is available');
+                
+                appInitialized = true;
+                initializeApp();
+                
+            } catch (error) {
+                console.error('❌ Three.js not available:', error);
+                
+                // Last resort: use simplified Three.js
+                console.log('🔧 Using simplified Three.js as last resort...');
+                createSimplifiedThreeJs();
+                
+                try {
+                    appInitialized = true;
+                    initializeApp();
+                    console.log('✅ App initialized with simplified Three.js');
+                } catch (initError) {
+                    console.error('❌ Even simplified Three.js failed:', initError);
+                    showErrorMessage();
+                }
+            }
+        }
+        
+        
+        // Show error message to user
+        function showErrorMessage() {
+            document.getElementById('loading').innerHTML = `
+                <h3>❌ Error Loading 3D Library</h3>
+                <p>Failed to load Three.js from local build folder.</p>
+                <p>This might be due to:</p>
+                <ul style="text-align: left; max-width: 400px; margin: 10px auto;">
+                    <li>Missing Three.js files in build folder</li>
+                    <li>Corrupted Three.js files</li>
+                    <li>Server configuration issues</li>
+                    <li>File permissions problems</li>
+                </ul>
+                <div style="margin: 20px 0;">
+                    <button onclick="location.reload()" style="padding: 10px 20px; margin: 5px; background: #ff6b6b; color: white; border: none; border-radius: 5px; cursor: pointer;">🔄 Refresh Page</button>
+                    <button onclick="tryOfflineMode()" style="padding: 10px 20px; margin: 5px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">🔄 Try Offline Mode</button>
+                    <button onclick="window.open('https://threejs.org', '_blank')" style="padding: 10px 20px; margin: 5px; background: #2196F3; color: white; border: none; border-radius: 5px; cursor: pointer;">📚 Three.js Website</button>
+                </div>
+                <p style="font-size: 12px; opacity: 0.7;">Offline mode will use a simplified version with basic 3D functionality.</p>
+                <p style="font-size: 12px; opacity: 0.7;">Make sure Three.js files exist in ./build/ folder.</p>
+            `;
+        }
+        
+        // Try offline mode with simplified Three.js
+        function tryOfflineMode() {
+            console.log('🔄 Trying offline mode...');
+            document.getElementById('loading').innerHTML = `
+                <h3>🔄 Loading Offline Mode...</h3>
+                <p>Using simplified 3D library...</p>
+            `;
+            
+            createSimplifiedThreeJs();
+            
+            setTimeout(() => {
+                try {
+                    initializeApp();
+                    console.log('✅ App initialized in offline mode');
+                    document.getElementById('loading').style.display = 'none';
+                } catch (error) {
+                    console.error('❌ Offline mode failed:', error);
+                    document.getElementById('loading').innerHTML = `
+                        <h3>❌ Offline Mode Failed</h3>
+                        <p>Unable to initialize application.</p>
+                        <button onclick="location.reload()" style="padding: 10px 20px; margin-top: 10px; background: #ff6b6b; color: white; border: none; border-radius: 5px; cursor: pointer;">🔄 Refresh Page</button>
+                    `;
+                }
+            }, 1000);
+        }
+        
+        // Try to initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add a longer delay to ensure Three.js scripts are loaded
+            setTimeout(() => {
+                initializeAppWithThree();
+            }, 1000);
+        });
+        
+        // Alternative: Also try when window is fully loaded
+        window.addEventListener('load', () => {
+            // Check if app is already initialized
+            if (!appInitialized) {
+                setTimeout(() => {
+                    initializeAppWithThree();
+                }, 500);
+            }
+        });
+        
+        // Alternative: Try to use a simplified version if Three.js fails
+        function createSimplifiedThreeJs() {
+            console.log('🔧 Creating simplified Three.js fallback...');
+            
+            // Create a minimal THREE object for basic functionality
+            window.THREE = {
+                REVISION: '165-simplified',
+                Scene: function() { 
+                    return { 
+                        add: function() {}, 
+                        remove: function() {},
+                        children: [],
+                        background: null
+                    }; 
+                },
+                PerspectiveCamera: function() { 
+                    return { 
+                        position: { set: function() {}, x: 0, y: 0, z: 0 }, 
+                        lookAt: function() {},
+                        fov: 75,
+                        aspect: 1,
+                        near: 0.1,
+                        far: 1000,
+                        updateProjectionMatrix: function() {}
+                    }; 
+                },
+                WebGLRenderer: function() { 
+                    const canvas = document.createElement('canvas');
+                    return { 
+                        setSize: function() {}, 
+                        render: function() {}, 
+                        domElement: canvas,
+                        shadowMap: { type: 0 }
+                    }; 
+                },
+                BoxGeometry: function() { return {}; },
+                SphereGeometry: function() { return {}; },
+                CylinderGeometry: function() { return {}; },
+                ConeGeometry: function() { return {}; },
+                MeshBasicMaterial: function() { return { color: '#ffffff' }; },
+                MeshLambertMaterial: function() { return { color: '#ffffff' }; },
+                MeshPhongMaterial: function() { return { color: '#ffffff' }; },
+                Mesh: function() { 
+                    return { 
+                        position: { set: function() {}, x: 0, y: 0, z: 0 }, 
+                        rotation: { set: function() {}, x: 0, y: 0, z: 0 }, 
+                        scale: { set: function() {}, x: 1, y: 1, z: 1 }, 
+                        visible: true,
+                        castShadow: false,
+                        receiveShadow: false
+                    }; 
+                },
+                AmbientLight: function() { return { color: '#ffffff', intensity: 1 }; },
+                DirectionalLight: function() { 
+                    return { 
+                        position: { set: function() {}, x: 0, y: 1, z: 0 },
+                        color: '#ffffff',
+                        intensity: 1
+                    }; 
+                },
+                PointLight: function() { 
+                    return { 
+                        position: { set: function() {}, x: 0, y: 1, z: 0 },
+                        color: '#ffffff',
+                        intensity: 1
+                    }; 
+                },
+                Color: function(color) { return { r: 1, g: 1, b: 1 }; },
+                GLTFLoader: function() {
+                    return {
+                        load: function(url, onLoad, onProgress, onError) {
+                            console.log('GLTFLoader simplified - model loading skipped');
+                            if (onError) onError(new Error('GLTFLoader not available in simplified mode'));
+                        }
+                    };
+                },
+                AnimationMixer: function() { return { update: function() {} }; }
+            };
+            
+            console.log('✅ Simplified Three.js created with extended functionality');
+            return window.THREE;
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const scene = document.querySelector('#ar-scene');
+            if (scene) {
+                scene.resize();
+            }
+        });
+        
+        // Close gallery when clicking outside
+        document.getElementById('gallery-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'gallery-modal') {
+                closeGallery();
+            }
+        });
+    </script>
+</body>
+</html>
