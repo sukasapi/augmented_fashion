@@ -4,10 +4,12 @@ Folder ini berisi file build Three.js yang diperlukan untuk aplikasi AR Fashion 
 
 ## ✅ Status: File Tersedia
 
-Semua file Three.js sudah tersedia dan siap digunakan!
+Semua file Three.js dan AR.js sudah tersedia dan siap digunakan!
 
-### **Primary File (Active)**
+### **Primary Files (Active)**
 - ✅ `three.min.js` - Three.js main file (minified) - **SEDANG DIGUNAKAN**
+- ✅ `ar.js` - AR.js main file - **SEDANG DIGUNAKAN**
+- ✅ `ar.css` - AR.js CSS styles - **SEDANG DIGUNAKAN**
 
 ### **Backup Files (Available)**
 - ✅ `three.cjs` - Three.js CommonJS version (backup 1)
@@ -24,22 +26,25 @@ Semua file Three.js sudah tersedia dan siap digunakan!
 
 Aplikasi menggunakan strategy loading berikut:
 
-### **1. Primary Loading**
-- ✅ `./build/three.min.js` - File lokal utama (prioritas 1)
+### **Three.js Loading**
+1. ✅ `./build/three.min.js` - File lokal utama (prioritas 1)
+2. ✅ `./build/three.cjs` - CommonJS version (backup 1)
+3. ✅ `./build/three.core.min.js` - Core version (backup 2)
+4. ✅ `./build/three.module.min.js` - Module version (backup 3)
+5. ✅ CDN fallback - Multiple CDN sources
+6. ✅ Simplified Three.js fallback (last resort)
 
-### **2. Secondary Backup**
-- ✅ `https://cdnjs.cloudflare.com/ajax/libs/three.js/r144/three.min.js` - CDN backup
+### **AR.js Loading**
+1. ✅ `./build/ar.js` - File lokal utama (prioritas 1)
+2. ✅ `https://cdn.jsdelivr.net/npm/ar.js@0.11.0/dist/ar.js` - CDN backup 1
+3. ✅ `https://unpkg.com/ar.js@0.11.0/dist/ar.js` - CDN backup 2
+4. ✅ `https://cdnjs.cloudflare.com/ajax/libs/ar.js/0.11.0/ar.js` - CDN backup 3
 
-### **3. Local Backup Files**
-- ✅ `./build/three.cjs` - CommonJS version
-- ✅ `./build/three.core.min.js` - Core version  
-- ✅ `./build/three.module.min.js` - Module version
-
-### **4. CDN Fallback**
-- ✅ `https://unpkg.com/three@0.144.0/build/three.min.js` - Alternative CDN
-
-### **5. Last Resort**
-- ✅ Simplified Three.js fallback jika semua gagal
+### **AR.js CSS Loading**
+1. ✅ `./build/ar.css` - File lokal utama (prioritas 1) - **CUSTOM MADE**
+2. ✅ `https://cdn.jsdelivr.net/npm/ar.js@0.11.0/dist/ar.css` - CDN backup 1
+3. ✅ `https://unpkg.com/ar.js@0.11.0/dist/ar.css` - CDN backup 2
+4. ✅ Inline CSS fallback jika semua gagal
 
 ## ⚠️ Important Notes
 
@@ -50,8 +55,10 @@ Aplikasi menggunakan strategy loading berikut:
 
 ## 🎯 Expected Console Output
 
-### **Success Case (Local File)**
+### **Success Case (Local Files)**
 ```
+✅ AR.js CSS local loaded successfully
+✅ AR.js local script loaded successfully
 ✅ Three.js local script loaded successfully
 🔍 Checking THREE availability...
 THREE type: object
@@ -59,6 +66,15 @@ THREE type: object
 🎬 DOM ready, checking Three.js...
 ✅ Three.js is available
 ```
+
+### **AR.js CSS Features**
+- ✅ **AR.js Loader**: Loading animation dengan dots
+- ✅ **Scene Styling**: Basic A-Frame scene styles
+- ✅ **Marker Styles**: Opacity transitions untuk markers
+- ✅ **Entity Styles**: Basic entity display styles
+- ✅ **Mobile Optimizations**: Responsive design
+- ✅ **Performance Optimizations**: Hardware acceleration
+- ✅ **Accessibility**: Focus management dan screen reader support
 
 ### **Backup Case**
 ```
@@ -76,9 +92,10 @@ THREE type: object
 ## 🐛 Troubleshooting
 
 ### **✅ File Available**
-- ✅ File `three.min.js` sudah tersedia di folder `./build/`
+- ✅ File `three.min.js` dan `ar.js` sudah tersedia di folder `./build/`
 - ✅ Semua backup files juga tersedia
 - ✅ Aplikasi akan otomatis fallback jika ada masalah
+- ✅ Loading dari file lokal lebih cepat dan reliable
 
 ### **🔍 Debug Steps**
 1. Check console browser untuk loading status

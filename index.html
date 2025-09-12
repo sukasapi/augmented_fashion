@@ -5,8 +5,110 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AR Fashion Gallery - 3D Model Viewer</title>
     
-    <!-- AR.js CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ar.js@0.11.0/dist/ar.css">
+    <!-- AR.js CSS - Local -->
+    <link rel="stylesheet" href="./build/ar.css" 
+          onload="console.log('✅ AR.js CSS local loaded successfully')"
+          onerror="loadARCSSBackup()">
+    
+    <!-- AR.js CSS Backup Function -->
+    <script>
+        function loadARCSSBackup() {
+            console.log('🔄 Loading AR.js CSS backup...');
+            
+            // Try CDN sources as backup
+            const cdnUrls = [
+                'https://cdn.jsdelivr.net/npm/ar.js@0.11.0/dist/ar.css',
+                'https://unpkg.com/ar.js@0.11.0/dist/ar.css'
+            ];
+            
+            let currentIndex = 0;
+            
+            function tryCDN() {
+                if (currentIndex >= cdnUrls.length) {
+                    console.log('⚠️ All AR.js CSS sources failed, using inline fallback');
+                    loadFallbackCSS();
+                    return;
+                }
+                
+                const url = cdnUrls[currentIndex];
+                console.log(`🔄 Trying AR.js CSS ${currentIndex + 1}/${cdnUrls.length}: ${url}`);
+                
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = url;
+                link.onload = () => console.log(`✅ AR.js CSS loaded successfully: ${url}`);
+                link.onerror = () => {
+                    currentIndex++;
+                    tryCDN();
+                };
+                document.head.appendChild(link);
+            }
+            
+            tryCDN();
+        }
+        
+        function loadFallbackCSS() {
+            console.log('🔧 Loading inline CSS fallback...');
+            const style = document.createElement('style');
+            style.textContent = `
+                /* Essential AR.js styles */
+                .arjs-loader {
+                    position: absolute;
+                    left: 50%;
+                    top: 50%;
+                    transform: translate(-50%, -50%);
+                    font-family: Arial, sans-serif;
+                    color: white;
+                    background: rgba(0,0,0,0.8);
+                    padding: 20px;
+                    border-radius: 10px;
+                    text-align: center;
+                    z-index: 1000;
+                }
+                
+                .arjs-loader div {
+                    margin: 10px 0;
+                }
+                
+                .arjs-loader div:after {
+                    content: '';
+                    animation: arjs-loader-animation 1s infinite;
+                }
+                
+                @keyframes arjs-loader-animation {
+                    0% { content: ''; }
+                    25% { content: '.'; }
+                    50% { content: '..'; }
+                    75% { content: '...'; }
+                    100% { content: ''; }
+                }
+                
+                /* Basic AR scene styles */
+                a-scene {
+                    width: 100%;
+                    height: 100vh;
+                    display: block;
+                }
+                
+                /* Marker styles */
+                a-marker {
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+                
+                a-marker.visible {
+                    opacity: 1;
+                }
+                
+                /* Entity styles */
+                a-entity {
+                    display: block;
+                }
+            `;
+            document.head.appendChild(style);
+            console.log('✅ Inline CSS fallback loaded successfully');
+        }
+    </script>
     
     <!-- Three.js - Simplified loading -->
     <script>
@@ -91,13 +193,53 @@
             onload="console.log('✅ Three.js local script loaded successfully')"
             onerror="loadThreeJsBackup()"></script>
     
-    <!-- Three.js CDN Script - Secondary Backup -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r144/three.min.js" 
-            onload="console.log('✅ Three.js CDN script loaded successfully')"
-            onerror="console.log('⚠️ Three.js CDN script failed')"></script>
+    <!-- Three.js GLTFLoader -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.144.0/examples/js/loaders/GLTFLoader.js" 
+            onload="console.log('✅ Three.js GLTFLoader loaded successfully')"
+            onerror="console.log('⚠️ GLTFLoader failed to load, will use fallback')"></script>
     
-    <!-- AR.js -->
-    <script src="https://cdn.jsdelivr.net/npm/ar.js@0.11.0/dist/ar.js"></script>
+   
+    <!-- AR.js - Local -->
+    <script src="./build/ar.js" 
+            onload="console.log('✅ AR.js local script loaded successfully')"
+            onerror="loadARJSBackup()"></script>
+    
+    <!-- AR.js Backup Function -->
+    <script>
+        function loadARJSBackup() {
+            console.log('🔄 Loading AR.js backup...');
+            
+            // Try CDN sources as backup
+            const cdnUrls = [
+                'https://cdn.jsdelivr.net/npm/ar.js@0.11.0/dist/ar.js',
+                'https://unpkg.com/ar.js@0.11.0/dist/ar.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/ar.js/0.11.0/ar.js'
+            ];
+            
+            let currentIndex = 0;
+            
+            function tryCDN() {
+                if (currentIndex >= cdnUrls.length) {
+                    console.error('❌ All AR.js sources failed');
+                    return;
+                }
+                
+                const url = cdnUrls[currentIndex];
+                console.log(`🔄 Trying AR.js ${currentIndex + 1}/${cdnUrls.length}: ${url}`);
+                
+                const script = document.createElement('script');
+                script.src = url;
+                script.onload = () => console.log(`✅ AR.js loaded successfully: ${url}`);
+                script.onerror = () => {
+                    currentIndex++;
+                    tryCDN();
+                };
+                document.head.appendChild(script);
+            }
+            
+            tryCDN();
+        }
+    </script>
     
     
     <style>
@@ -422,37 +564,16 @@
                 this.models = [
                     {
                         id: 1,
-                        name: "Box 3D",
-                        type: "primitive",
-                        src: null,
+                        name: "Figure",
+                        type: "glb",
+                        src: "./asset/model/model.glb",
                         thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZmNmI2YiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+Qm94PC90ZXh0Pjwvc3ZnPg=="
                     },
                     {
                         id: 2,
-                        name: "Sphere 3D",
-                        type: "primitive",
-                        src: null,
-                        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iIzM3NDJmYSIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U3BoZXJlPC90ZXh0Pjwvc3ZnPg=="
-                    },
-                    {
-                        id: 3,
-                        name: "Cylinder 3D",
-                        type: "primitive",
-                        src: null,
-                        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB4PSIyNSIgeT0iMjAiIHdpZHRoPSI1MCIgaGVpZ2h0PSI2MCIgZmlsbD0iIzJkZDM0NiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+Q3lsaW5kZXI8L3RleHQ+PC9zdmc+"
-                    },
-                    {
-                        id: 4,
-                        name: "Cone 3D",
-                        type: "primitive",
-                        src: null,
-                        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cG9seWdvbiBwb2ludHM9IjUwLDEwIDIwLDgwIDgwLDgwIiBmaWxsPSIjZWU1YTI0Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Db25lPC90ZXh0Pjwvc3ZnPg=="
-                    },
-                    {
-                        id: 5,
-                        name: "Custom Model",
+                        name: "Animasi",
                         type: "glb",
-                        src: "./asset/model/model.glb",
+                        src: "./asset/model/walking.glb",
                         thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZmYzYwYyIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+R0xCPC90ZXh0Pjwvc3ZnPg=="
                     }
                 ];
@@ -460,8 +581,70 @@
                 this.currentModelIndex = 0;
                 this.isMobile = this.detectMobile();
                 this.markerDetected = false;
+                this.sceneLoaded = false; // Track if scene has loaded
                 
                 this.init();
+            }
+            
+            setupGLTFLoader() {
+                console.log('🔧 Setting up GLTFLoader component');
+                
+                // Wait for AFRAME to be available
+                const setupLoader = () => {
+                    if (typeof AFRAME !== 'undefined') {
+                        console.log('✅ AFRAME available, checking GLTFLoader');
+                        
+                        // Check if gltf-model component exists
+                        if (!AFRAME.components['gltf-model']) {
+                            console.log('🔧 Registering custom gltf-model component');
+                            AFRAME.registerComponent('gltf-model', {
+                                schema: {
+                                    src: {type: 'string'}
+                                },
+                                init: function () {
+                                    console.log('🔧 GLTF component init:', this.data.src);
+                                    this.loader = new THREE.GLTFLoader();
+                                    this.loadModel();
+                                },
+                                loadModel: function () {
+                                    var self = this;
+                                    var src = this.data.src;
+                                    
+                                    console.log('📦 Loading GLB model:', src);
+                                    
+                                    if (!src) {
+                                        console.error('❌ No src provided for GLB model');
+                                        return;
+                                    }
+                                    
+                                    this.loader.load(src, function (gltfModel) {
+                                        console.log('✅ GLB model loaded successfully:', src);
+                                        self.el.object3D.add(gltfModel.scene);
+                                        self.el.emit('model-loaded', {format: 'gltf', model: gltfModel});
+                                    }, function (error) {
+                                        console.error('❌ GLB model failed to load:', src, error);
+                                        self.el.emit('model-error', error);
+                                    });
+                                }
+                            });
+                            console.log('✅ Custom GLTFLoader component registered');
+                        } else {
+                            console.log('✅ GLTFLoader component already available');
+                        }
+                        
+                        // Also check if GLTFLoader is available in THREE
+                        if (typeof THREE !== 'undefined' && THREE.GLTFLoader) {
+                            console.log('✅ THREE.GLTFLoader is available');
+                        } else {
+                            console.log('⚠️ THREE.GLTFLoader not available, will use fallback');
+                        }
+                    } else {
+                        console.log('⏳ AFRAME not yet available, retrying...');
+                        setTimeout(setupLoader, 100);
+                    }
+                };
+                
+                setupLoader();
             }
             
             detectMobile() {
@@ -501,6 +684,9 @@
                 // Initialize gallery
                 this.initGallery();
                 
+                // Setup GLTFLoader component
+                this.setupGLTFLoader();
+                
                 // Load initial model dengan fallback untuk desktop
                 if (!this.isMobile) {
                     // Fallback untuk desktop jika scene tidak load
@@ -509,7 +695,7 @@
                             console.log('🔄 Desktop fallback - loading model');
                             this.loadCurrentModel();
                         }
-                    }, 2000);
+                    }, 1000);
                 }
             }
             
@@ -540,8 +726,16 @@
                         setTimeout(() => {
                             console.log('🖥️ Desktop mode - loading model after delay');
                             this.loadCurrentModel();
-                        }, 1000);
+                        }, 500); // Reduced delay
                     });
+                    
+                // Fallback for desktop mode if scene doesn't load quickly
+                setTimeout(() => {
+                    if (!this.sceneLoaded) {
+                        console.log('🖥️ Desktop mode - scene load timeout, forcing desktop mode');
+                        this.forceDesktopMode();
+                    }
+                }, 1500);
                 }
                 
                 // Handle errors
@@ -553,6 +747,7 @@
             
             onSceneReady() {
                 console.log('🎉 Scene AR siap digunakan');
+                this.sceneLoaded = true; // Mark scene as loaded
                 this.hideLoading();
                 this.updateStatus(this.isMobile ? 'AR siap - Arahkan kamera ke marker' : '3D Viewer siap');
                 this.updateModelInfo(this.models[this.currentModelIndex].name);
@@ -560,13 +755,41 @@
                 
                 // Load model untuk desktop
                 if (!this.isMobile) {
-                    this.loadCurrentModel();
+                    console.log('🖥️ Desktop mode - loading model immediately');
+                    // Add delay to ensure scene is fully ready
+                    setTimeout(() => {
+                        this.loadCurrentModel();
+                    }, 500);
                 }
+            }
+            
+            // Fallback method untuk desktop jika scene tidak load
+            forceDesktopMode() {
+                console.log('🖥️ Force desktop mode - hiding loading and showing model');
+                this.hideLoading();
+                this.updateStatus('3D Viewer siap (Fallback Mode)');
+                this.updateModelInfo(this.models[this.currentModelIndex].name);
+                this.updateModelCounter();
+                this.loadCurrentModel();
             }
             
             loadCurrentModel() {
                 const model = this.models[this.currentModelIndex];
                 console.log('📦 Loading model:', model.name);
+                console.log('📦 Model type:', model.type);
+                console.log('📦 Model src:', model.src);
+                
+                // Test model file accessibility
+                if (model.type === 'glb' && model.src) {
+                    this.testModelFile(model.src).catch(error => {
+                        console.error('❌ Model file test failed:', error);
+                        this.updateStatus('Model file tidak dapat diakses - menggunakan fallback');
+                        // Load primitive fallback immediately if file test fails
+                        setTimeout(() => {
+                            this.loadPrimitiveFallback();
+                        }, 100);
+                    });
+                }
                 
                 if (this.isMobile) {
                     this.loadMobileModel(model);
@@ -575,18 +798,70 @@
                 }
             }
             
+            testModelFile(src) {
+                console.log('🔍 Testing model file accessibility:', src);
+                return fetch(src)
+                    .then(response => {
+                        if (response.ok) {
+                            console.log('✅ Model file accessible:', src);
+                            return response.blob();
+                        } else {
+                            console.error('❌ Model file not accessible:', src, 'Status:', response.status);
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                    })
+                    .then(blob => {
+                        console.log('✅ Model file size:', blob.size, 'bytes');
+                        if (blob.size === 0) {
+                            console.error('❌ Model file is empty');
+                            throw new Error('Model file is empty');
+                        }
+                        return blob;
+                    })
+                    .catch(error => {
+                        console.error('❌ Model file fetch error:', src, error);
+                        throw error; // Re-throw untuk handling di caller
+                    });
+            }
+            
             loadMobileModel(model) {
                 // Clear existing model in marker
                 this.marker.innerHTML = '';
                 
                 if (model.type === 'glb' && model.src) {
-                    // Load GLB model
-                    const gltfModel = document.createElement('a-gltf-model');
-                    gltfModel.setAttribute('src', model.src);
+                    // Load GLB model dengan syntax yang benar
+                    console.log('📱 Loading mobile GLB model:', model.src);
+                    
+                    // Create GLB model entity
+                    const gltfModel = document.createElement('a-entity');
+                    gltfModel.setAttribute('gltf-model', model.src);
                     gltfModel.setAttribute('position', '0 0 0');
                     gltfModel.setAttribute('scale', '0.5 0.5 0.5');
                     gltfModel.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 3000');
+                    
+                    // Error handling untuk model loading
+                    gltfModel.addEventListener('model-loaded', () => {
+                        console.log('✅ Mobile GLB model loaded successfully');
+                        this.updateStatus('Model GLB berhasil dimuat');
+                    });
+                    
+                    gltfModel.addEventListener('model-error', (error) => {
+                        console.error('❌ Mobile GLB model failed to load:', error);
+                        // Fallback ke primitive model
+                        this.loadPrimitiveFallback();
+                    });
+                    
                     this.marker.appendChild(gltfModel);
+                    
+                    // Fallback timeout jika model tidak load dalam 3 detik
+                    setTimeout(() => {
+                        const gltfElement = this.marker.querySelector('[gltf-model]');
+                        if (this.marker.children.length === 0 || !gltfElement || !gltfElement.object3D.children.length) {
+                            console.log('⏰ Mobile GLB model load timeout, using fallback');
+                            this.loadPrimitiveFallback();
+                        }
+                    }, 3000);
+                    
                 } else {
                     // Load primitive model
                     const primitive = this.createPrimitiveModel(model.name);
@@ -603,15 +878,40 @@
                 this.desktopModel.innerHTML = '';
                 
                 if (model.type === 'glb' && model.src) {
-                    // Load GLB model
-                    console.log('📦 Loading GLB model:', model.src);
-                    const gltfModel = document.createElement('a-gltf-model');
-                    gltfModel.setAttribute('src', model.src);
+                    // Load GLB model dengan syntax yang benar
+                    console.log('📦 Loading desktop GLB model:', model.src);
+                    
+                    // Create GLB model entity
+                    const gltfModel = document.createElement('a-entity');
+                    gltfModel.setAttribute('gltf-model', model.src);
                     gltfModel.setAttribute('position', '0 0 0');
                     gltfModel.setAttribute('scale', '0.5 0.5 0.5');
                     gltfModel.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 3000');
+                    
+                    // Error handling untuk model loading
+                    gltfModel.addEventListener('model-loaded', () => {
+                        console.log('✅ Desktop GLB model loaded successfully');
+                        this.updateStatus('Model GLB berhasil dimuat');
+                    });
+                    
+                    gltfModel.addEventListener('model-error', (error) => {
+                        console.error('❌ Desktop GLB model failed to load:', error);
+                        // Fallback ke primitive model
+                        this.loadPrimitiveFallback();
+                    });
+                    
                     this.desktopModel.appendChild(gltfModel);
                     console.log('✅ GLB model appended to desktop model');
+                    
+                    // Fallback timeout jika model tidak load dalam 3 detik
+                    setTimeout(() => {
+                        const gltfElement = this.desktopModel.querySelector('[gltf-model]');
+                        if (this.desktopModel.children.length === 0 || !gltfElement || !gltfElement.object3D.children.length) {
+                            console.log('⏰ Desktop GLB model load timeout, using fallback');
+                            this.loadPrimitiveFallback();
+                        }
+                    }, 3000);
+                    
                 } else {
                     // Load primitive model
                     console.log('🔧 Loading primitive model:', model.name);
@@ -624,8 +924,62 @@
                 console.log('🔍 Desktop model element after:', this.desktopModel);
                 console.log('🔍 Desktop model children:', this.desktopModel.children);
                 
-                // Show desktop model
-                this.showDesktopModel();
+                // Show desktop model with delay to ensure model is loaded
+                setTimeout(() => {
+                    this.showDesktopModel();
+                }, 100);
+            }
+            
+            tryAlternativeGLBLoading(model, mode) {
+                console.log(`🔄 Trying alternative GLB loading for ${mode}:`, model.src);
+                
+                const target = mode === 'mobile' ? this.marker : this.desktopModel;
+                target.innerHTML = '';
+                
+                // Try old a-gltf-model syntax
+                try {
+                    const oldSyntaxModel = document.createElement('a-gltf-model');
+                    oldSyntaxModel.setAttribute('src', model.src);
+                    oldSyntaxModel.setAttribute('position', '0 0 0');
+                    oldSyntaxModel.setAttribute('scale', '0.5 0.5 0.5');
+                    oldSyntaxModel.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 3000');
+                    
+                    oldSyntaxModel.addEventListener('model-loaded', () => {
+                        console.log(`✅ Alternative GLB model loaded successfully for ${mode}`);
+                    });
+                    
+                    oldSyntaxModel.addEventListener('model-error', (error) => {
+                        console.error(`❌ Alternative GLB model failed for ${mode}:`, error);
+                        this.loadPrimitiveFallback();
+                    });
+                    
+                    target.appendChild(oldSyntaxModel);
+                    console.log(`🔄 Using alternative a-gltf-model syntax for ${mode}`);
+                    
+                } catch (e) {
+                    console.error(`❌ Alternative GLB loading failed for ${mode}:`, e);
+                    this.loadPrimitiveFallback();
+                }
+            }
+            
+            loadPrimitiveFallback() {
+                console.log('🔄 Loading primitive fallback model');
+                const primitive = this.createPrimitiveModel('Box 3D');
+                primitive.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 2000');
+                
+                if (this.isMobile) {
+                    this.marker.innerHTML = '';
+                    this.marker.appendChild(primitive);
+                    console.log('✅ Primitive fallback loaded for mobile');
+                } else {
+                    this.desktopModel.innerHTML = '';
+                    this.desktopModel.appendChild(primitive);
+                    this.showDesktopModel();
+                    console.log('✅ Primitive fallback loaded for desktop');
+                }
+                
+                this.updateStatus('Model GLB gagal - menggunakan model fallback');
+                this.updateModelInfo('Box 3D (Fallback)');
             }
             
             createPrimitiveModel(modelName) {
@@ -673,6 +1027,16 @@
                 this.desktopModel.setAttribute('visible', 'true');
                 this.updateStatus('Model 3D tampil - Gunakan navigasi untuk ganti model');
                 console.log('✅ Desktop model visibility set to true');
+                
+                // Debug: Check if model has children
+                console.log('🔍 Desktop model children count:', this.desktopModel.children.length);
+                console.log('🔍 Desktop model innerHTML:', this.desktopModel.innerHTML);
+                
+                // Force show model even if no children
+                if (this.desktopModel.children.length === 0) {
+                    console.log('⚠️ No children in desktop model, loading fallback');
+                    this.loadPrimitiveFallback();
+                }
             }
             
             initGallery() {
@@ -793,6 +1157,31 @@
                 appInitialized = true;
                 initializeApp();
                 
+                // Fallback: Hide loading screen after timeout if scene doesn't load
+                setTimeout(() => {
+                    const loadingElement = document.getElementById('loading');
+                    if (loadingElement && loadingElement.style.display !== 'none') {
+                        console.log('⚠️ Loading screen still visible after 3 seconds, forcing hide');
+                        loadingElement.style.display = 'none';
+                        
+                        // Try to show desktop model if on desktop
+                        if (app && !app.isMobile) {
+                            console.log('🖥️ Desktop fallback - forcing model load');
+                            app.forceDesktopMode();
+                        }
+                    }
+                }, 2000);
+                
+                // Early fallback for desktop mode
+                if (app && !app.isMobile) {
+                    setTimeout(() => {
+                        if (!app.sceneLoaded) {
+                            console.log('🖥️ Early desktop fallback - scene not loaded in 1 second');
+                            app.forceDesktopMode();
+                        }
+                    }, 1000);
+                }
+                
             } catch (error) {
                 console.error('❌ Three.js not available:', error);
                 
@@ -862,10 +1251,10 @@
         
         // Try to initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
-            // Add a longer delay to ensure Three.js scripts are loaded
-            setTimeout(() => {
-                initializeAppWithThree();
-            }, 1000);
+                // Add a longer delay to ensure Three.js scripts are loaded
+                setTimeout(() => {
+                    initializeAppWithThree();
+                }, 500);
         });
         
         // Alternative: Also try when window is fully loaded
