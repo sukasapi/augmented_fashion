@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Fashion Gallery - 3D Model Viewer</title>
+    <title>AR Furniture Viewer - Kursi Orange</title>
     
     <!-- AR.js CSS - Local -->
     <link rel="stylesheet" href="./build/ar.css" 
@@ -469,7 +469,7 @@
 </head>
 <body>
     <div id="loading">
-        <h3>🔄 Memuat AR Gallery...</h3>
+        <h3>🔄 Memuat AR Furniture Viewer...</h3>
         <p>Mohon tunggu sebentar</p>
     </div>
     
@@ -478,11 +478,11 @@
     </div>
     
     <div class="model-counter" id="model-counter">
-        1 / 5
+        1 / 3
     </div>
     
     <div id="info">
-        <h3>🎨 AR Fashion Gallery</h3>
+        <h3>🪑 AR Furniture Viewer</h3>
         <p><strong>Status:</strong> <span id="status">Memuat...</span></p>
         <p><strong>Model:</strong> <span id="model-info">Loading...</span></p>
         <p><strong>Mode:</strong> <span id="mode-info">Detecting...</span></p>
@@ -498,7 +498,7 @@
         <button class="close-gallery" onclick="closeGallery()">✕</button>
         <div class="gallery-content">
             <div class="gallery-header">
-                <h2>🎨 Koleksi Model 3D</h2>
+                <h2>🪑 Koleksi Furniture 3D</h2>
                 <p>Pilih model yang ingin ditampilkan</p>
             </div>
             <div class="gallery-grid" id="gallery-grid">
@@ -521,11 +521,39 @@
             <!-- Model 3D akan muncul di sini -->
         </a-entity>
         
+        <!-- Target circle untuk AR placement -->
+        <a-entity id="target-circle" position="0 0.01 0" visible="false">
+            <a-ring 
+                radius-inner="0.4" 
+                radius-outer="0.5" 
+                color="#ff8000" 
+                opacity="0.6"
+                animation="property: rotation; to: 0 0 360; repeat: indefinite; dur: 3000">
+            </a-ring>
+            <a-ring 
+                radius-inner="0.3" 
+                radius-outer="0.35" 
+                color="#ff8000" 
+                opacity="0.3"
+                animation="property: rotation; to: 0 0 -360; repeat: indefinite; dur: 2000">
+            </a-ring>
+        </a-entity>
+        
         <!-- Lighting untuk scene -->
-        <a-light type="ambient" color="#404040" intensity="0.6"></a-light>
-        <a-light type="directional" position="0 1 0" color="#ffffff" intensity="1.2"></a-light>
-        <a-light type="point" position="2 2 2" color="#ff6b6b" intensity="0.5"></a-light>
+        <a-light type="ambient" color="#404040" intensity="0.8"></a-light>
+        <a-light type="directional" position="2 4 2" color="#ffffff" intensity="1.5" cast-shadow="true"></a-light>
+        <a-light type="directional" position="-2 2 -2" color="#ffffff" intensity="0.8"></a-light>
+        <a-light type="point" position="0 3 0" color="#ffffff" intensity="0.6"></a-light>
+        <a-light type="hemisphere" sky-color="#87ceeb" ground-color="#362d1d" intensity="0.4"></a-light>
     </a-scene>
+
+    <!-- AR Icon di pojok kanan atas -->
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 100;">
+        <div style="background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 10px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
+            <div style="font-size: 24px; text-align: center;">AR</div>
+            <div style="font-size: 10px; text-align: center; opacity: 0.8;">3D Cube</div>
+        </div>
+    </div>
 
     <!-- Navigation Controls -->
     <div class="controls">
@@ -533,10 +561,32 @@
             ←
         </button>
         <button class="control-btn gallery-btn" onclick="openGallery()" title="Lihat Gallery">
-            🎨
+            🪑
         </button>
         <button class="control-btn nav-btn" onclick="nextModel()" title="Model Selanjutnya">
             →
+        </button>
+    </div>
+    
+    <!-- Tombol Interaksi Orange di bawah layar -->
+    <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100;">
+        <button onclick="interactWithModel()" style="
+            background: #ff8000; 
+            border: 2px solid #ff8000; 
+            color: white; 
+            width: 60px; 
+            height: 60px; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            font-size: 18px; 
+            backdrop-filter: blur(10px); 
+            transition: all 0.3s ease; 
+            box-shadow: 0 4px 15px rgba(255, 128, 0, 0.3);
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+        " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+            📷
         </button>
     </div>
 
@@ -564,13 +614,20 @@
                 this.models = [
                     {
                         id: 1,
+                        name: "Kursi Orange",
+                        type: "primitive",
+                        src: null,
+                        thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZmODAwMCIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+S3Vyc2k8L3RleHQ+PC9zdmc+"
+                    },
+                    {
+                        id: 2,
                         name: "Figure",
                         type: "glb",
                         src: "./asset/model/model.glb",
                         thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZmNmI2YiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+Qm94PC90ZXh0Pjwvc3ZnPg=="
                     },
                     {
-                        id: 2,
+                        id: 3,
                         name: "Animasi",
                         type: "glb",
                         src: "./asset/model/walking.glb",
@@ -689,13 +746,25 @@
                 
                 // Load initial model dengan fallback untuk desktop
                 if (!this.isMobile) {
+                    // Immediate fallback untuk desktop
+                    setTimeout(() => {
+                        console.log('🔄 Desktop immediate fallback - ensuring model is visible');
+                        this.ensureModelVisible();
+                    }, 300);
+                    
                     // Fallback untuk desktop jika scene tidak load
                     setTimeout(() => {
                         if (!this.desktopModel.hasChildNodes()) {
                             console.log('🔄 Desktop fallback - loading model');
                             this.loadCurrentModel();
                         }
-                    }, 1000);
+                    }, 800);
+                    
+                    // Additional fallback to ensure model is always visible
+                    setTimeout(() => {
+                        console.log('🔄 Desktop additional fallback - final check');
+                        this.ensureModelVisible();
+                    }, 1200);
                 }
             }
             
@@ -735,7 +804,7 @@
                         console.log('🖥️ Desktop mode - scene load timeout, forcing desktop mode');
                         this.forceDesktopMode();
                     }
-                }, 1500);
+                }, 1000);
                 }
                 
                 // Handle errors
@@ -759,6 +828,10 @@
                     // Add delay to ensure scene is fully ready
                     setTimeout(() => {
                         this.loadCurrentModel();
+                        // Ensure model is visible after loading
+                        setTimeout(() => {
+                            this.ensureModelVisible();
+                        }, 200);
                     }, 500);
                 }
             }
@@ -770,7 +843,14 @@
                 this.updateStatus('3D Viewer siap (Fallback Mode)');
                 this.updateModelInfo(this.models[this.currentModelIndex].name);
                 this.updateModelCounter();
+                
+                // Load current model and ensure it's visible
                 this.loadCurrentModel();
+                
+                // Additional fallback to ensure model is visible
+                setTimeout(() => {
+                    this.ensureModelVisible();
+                }, 500);
             }
             
             loadCurrentModel() {
@@ -778,6 +858,9 @@
                 console.log('📦 Loading model:', model.name);
                 console.log('📦 Model type:', model.type);
                 console.log('📦 Model src:', model.src);
+                
+                // Hide target circle first
+                this.hideTargetCircle();
                 
                 // Test model file accessibility
                 if (model.type === 'glb' && model.src) {
@@ -828,13 +911,47 @@
                 // Clear existing model in marker
                 this.marker.innerHTML = '';
                 
+                // Always load primitive model first as fallback
+                console.log('🔧 Loading primitive model as primary for mobile:', model.name);
+                const primitive = this.createPrimitiveModel(model.name);
+                primitive.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 2000');
+                this.marker.appendChild(primitive);
+                console.log('✅ Primitive model appended to marker');
+                
+                // Try to load GLB model if available
                 if (model.type === 'glb' && model.src) {
-                    // Load GLB model dengan syntax yang benar
-                    console.log('📱 Loading mobile GLB model:', model.src);
+                    console.log('📱 Attempting to load GLB model for mobile:', model.src);
+                    
+                    // Test file accessibility first
+                    fetch(model.src)
+                        .then(response => {
+                            if (response.ok) {
+                                console.log('✅ GLB file accessible for mobile, loading model');
+                                return this.loadGLBModelMobile(model.src);
+                            } else {
+                                console.error('❌ GLB file not accessible for mobile:', response.status);
+                                throw new Error('File not accessible');
+                            }
+                        })
+                        .then(() => {
+                            console.log('✅ Mobile GLB model loaded successfully');
+                            this.updateStatus('Model GLB berhasil dimuat');
+                        })
+                        .catch(error => {
+                            console.error('❌ Mobile GLB model failed to load:', error);
+                            console.log('🔄 Using primitive model as fallback for mobile');
+                            this.updateStatus('Model GLB gagal - menggunakan model fallback');
+                        });
+                }
+            }
+            
+            loadGLBModelMobile(src) {
+                return new Promise((resolve, reject) => {
+                    console.log('📱 Loading GLB model for mobile:', src);
                     
                     // Create GLB model entity
                     const gltfModel = document.createElement('a-entity');
-                    gltfModel.setAttribute('gltf-model', model.src);
+                    gltfModel.setAttribute('gltf-model', src);
                     gltfModel.setAttribute('position', '0 0 0');
                     gltfModel.setAttribute('scale', '0.5 0.5 0.5');
                     gltfModel.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 3000');
@@ -842,32 +959,28 @@
                     // Error handling untuk model loading
                     gltfModel.addEventListener('model-loaded', () => {
                         console.log('✅ Mobile GLB model loaded successfully');
-                        this.updateStatus('Model GLB berhasil dimuat');
+                        // Replace primitive with GLB model
+                        this.marker.innerHTML = '';
+                        this.marker.appendChild(gltfModel);
+                        resolve();
                     });
                     
                     gltfModel.addEventListener('model-error', (error) => {
                         console.error('❌ Mobile GLB model failed to load:', error);
-                        // Fallback ke primitive model
-                        this.loadPrimitiveFallback();
+                        reject(error);
                     });
                     
-                    this.marker.appendChild(gltfModel);
-                    
-                    // Fallback timeout jika model tidak load dalam 3 detik
+                    // Timeout after 5 seconds
                     setTimeout(() => {
-                        const gltfElement = this.marker.querySelector('[gltf-model]');
-                        if (this.marker.children.length === 0 || !gltfElement || !gltfElement.object3D.children.length) {
-                            console.log('⏰ Mobile GLB model load timeout, using fallback');
-                            this.loadPrimitiveFallback();
+                        if (!gltfModel.object3D.children.length) {
+                            console.log('⏰ Mobile GLB model load timeout');
+                            reject(new Error('Load timeout'));
                         }
-                    }, 3000);
+                    }, 5000);
                     
-                } else {
-                    // Load primitive model
-                    const primitive = this.createPrimitiveModel(model.name);
-                    primitive.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 2000');
-                    this.marker.appendChild(primitive);
-                }
+                    // Add to scene to start loading
+                    this.marker.appendChild(gltfModel);
+                });
             }
             
             loadDesktopModel(model) {
@@ -877,57 +990,82 @@
                 // Clear existing model in desktop
                 this.desktopModel.innerHTML = '';
                 
+                // Always load primitive model first as fallback
+                console.log('🔧 Loading primitive model as primary:', model.name);
+                const primitive = this.createPrimitiveModel(model.name);
+                primitive.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 2000');
+                this.desktopModel.appendChild(primitive);
+                console.log('✅ Primitive model appended to desktop model');
+                
+                // Try to load GLB model if available
                 if (model.type === 'glb' && model.src) {
-                    // Load GLB model dengan syntax yang benar
-                    console.log('📦 Loading desktop GLB model:', model.src);
+                    console.log('📦 Attempting to load GLB model:', model.src);
+                    
+                    // Test file accessibility first
+                    fetch(model.src)
+                        .then(response => {
+                            if (response.ok) {
+                                console.log('✅ GLB file accessible, loading model');
+                                return this.loadGLBModel(model.src);
+                            } else {
+                                console.error('❌ GLB file not accessible:', response.status);
+                                throw new Error('File not accessible');
+                            }
+                        })
+                        .then(() => {
+                            console.log('✅ GLB model loaded successfully');
+                            this.updateStatus('Model GLB berhasil dimuat');
+                        })
+                        .catch(error => {
+                            console.error('❌ GLB model failed to load:', error);
+                            console.log('🔄 Using primitive model as fallback');
+                            this.updateStatus('Model GLB gagal - menggunakan model fallback');
+                        });
+                }
+                
+                console.log('🔍 Desktop model element after:', this.desktopModel);
+                console.log('🔍 Desktop model children:', this.desktopModel.children);
+                
+                // Show desktop model immediately
+                this.showDesktopModel();
+            }
+            
+            loadGLBModel(src) {
+                return new Promise((resolve, reject) => {
+                    console.log('📦 Loading GLB model:', src);
                     
                     // Create GLB model entity
                     const gltfModel = document.createElement('a-entity');
-                    gltfModel.setAttribute('gltf-model', model.src);
+                    gltfModel.setAttribute('gltf-model', src);
                     gltfModel.setAttribute('position', '0 0 0');
                     gltfModel.setAttribute('scale', '0.5 0.5 0.5');
                     gltfModel.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 3000');
                     
                     // Error handling untuk model loading
                     gltfModel.addEventListener('model-loaded', () => {
-                        console.log('✅ Desktop GLB model loaded successfully');
-                        this.updateStatus('Model GLB berhasil dimuat');
+                        console.log('✅ GLB model loaded successfully');
+                        // Replace primitive with GLB model
+                        this.desktopModel.innerHTML = '';
+                        this.desktopModel.appendChild(gltfModel);
+                        resolve();
                     });
                     
                     gltfModel.addEventListener('model-error', (error) => {
-                        console.error('❌ Desktop GLB model failed to load:', error);
-                        // Fallback ke primitive model
-                        this.loadPrimitiveFallback();
+                        console.error('❌ GLB model failed to load:', error);
+                        reject(error);
                     });
                     
-                    this.desktopModel.appendChild(gltfModel);
-                    console.log('✅ GLB model appended to desktop model');
-                    
-                    // Fallback timeout jika model tidak load dalam 3 detik
+                    // Timeout after 5 seconds
                     setTimeout(() => {
-                        const gltfElement = this.desktopModel.querySelector('[gltf-model]');
-                        if (this.desktopModel.children.length === 0 || !gltfElement || !gltfElement.object3D.children.length) {
-                            console.log('⏰ Desktop GLB model load timeout, using fallback');
-                            this.loadPrimitiveFallback();
+                        if (!gltfModel.object3D.children.length) {
+                            console.log('⏰ GLB model load timeout');
+                            reject(new Error('Load timeout'));
                         }
-                    }, 3000);
+                    }, 5000);
                     
-                } else {
-                    // Load primitive model
-                    console.log('🔧 Loading primitive model:', model.name);
-                    const primitive = this.createPrimitiveModel(model.name);
-                    primitive.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 2000');
-                    this.desktopModel.appendChild(primitive);
-                    console.log('✅ Primitive model appended to desktop model');
-                }
-                
-                console.log('🔍 Desktop model element after:', this.desktopModel);
-                console.log('🔍 Desktop model children:', this.desktopModel.children);
-                
-                // Show desktop model with delay to ensure model is loaded
-                setTimeout(() => {
-                    this.showDesktopModel();
-                }, 100);
+                    // Add to scene to start loading
+                    this.desktopModel.appendChild(gltfModel);
+                });
             }
             
             tryAlternativeGLBLoading(model, mode) {
@@ -986,36 +1124,102 @@
                 console.log('🔧 Creating primitive model:', modelName);
                 let primitive;
                 
-                switch(modelName) {
-                    case 'Box 3D':
-                        primitive = document.createElement('a-box');
-                        primitive.setAttribute('position', '0 0.5 0');
-                        primitive.setAttribute('material', 'color: #ff6b6b; opacity: 0.8');
-                        console.log('📦 Created box primitive');
-                        break;
-                    case 'Sphere 3D':
-                        primitive = document.createElement('a-sphere');
-                        primitive.setAttribute('position', '0 0.5 0');
-                        primitive.setAttribute('material', 'color: #3742fa; opacity: 0.8');
-                        console.log('🔵 Created sphere primitive');
-                        break;
-                    case 'Cylinder 3D':
-                        primitive = document.createElement('a-cylinder');
-                        primitive.setAttribute('position', '0 0.5 0');
-                        primitive.setAttribute('material', 'color: #2dd34c; opacity: 0.8');
-                        console.log('🔄 Created cylinder primitive');
-                        break;
-                    case 'Cone 3D':
-                        primitive = document.createElement('a-cone');
-                        primitive.setAttribute('position', '0 0.5 0');
-                        primitive.setAttribute('material', 'color: #ee5a24; opacity: 0.8');
-                        console.log('🔺 Created cone primitive');
-                        break;
-                    default:
-                        primitive = document.createElement('a-box');
-                        primitive.setAttribute('position', '0 0.5 0');
-                        primitive.setAttribute('material', 'color: #ff6b6b; opacity: 0.8');
-                        console.log('📦 Created default box primitive');
+                if (modelName === 'Kursi Orange') {
+                    // Create chair container
+                    primitive = document.createElement('a-entity');
+                    primitive.setAttribute('position', '0 0 0');
+                    
+                    // Create chair seat (orange)
+                    const seat = document.createElement('a-box');
+                    seat.setAttribute('position', '0 0.3 0');
+                    seat.setAttribute('width', '1.2');
+                    seat.setAttribute('height', '0.1');
+                    seat.setAttribute('depth', '1.0');
+                    seat.setAttribute('material', 'color: #ff8000; metalness: 0.3; roughness: 0.7');
+                    seat.setAttribute('shadow', 'cast: true; receive: true');
+                    primitive.appendChild(seat);
+                    
+                    // Create chair back (orange)
+                    const back = document.createElement('a-box');
+                    back.setAttribute('position', '0 0.8 -0.4');
+                    back.setAttribute('width', '1.2');
+                    back.setAttribute('height', '1.0');
+                    back.setAttribute('depth', '0.1');
+                    back.setAttribute('material', 'color: #ff8000; metalness: 0.3; roughness: 0.7');
+                    back.setAttribute('shadow', 'cast: true; receive: true');
+                    primitive.appendChild(back);
+                    
+                    // Create metal legs (silver)
+                    const legPositions = [
+                        {x: -0.5, z: -0.4},  // Front left
+                        {x: 0.5, z: -0.4},   // Front right
+                        {x: -0.5, z: 0.4},   // Back left
+                        {x: 0.5, z: 0.4}     // Back right
+                    ];
+                    
+                    legPositions.forEach((pos, index) => {
+                        const leg = document.createElement('a-cylinder');
+                        leg.setAttribute('position', `${pos.x} 0.15 ${pos.z}`);
+                        leg.setAttribute('radius', '0.02');
+                        leg.setAttribute('height', '0.3');
+                        leg.setAttribute('material', 'color: #c0c0c0; metalness: 0.9; roughness: 0.1');
+                        leg.setAttribute('shadow', 'cast: true; receive: true');
+                        primitive.appendChild(leg);
+                    });
+                    
+                    // Add subtle rotation animation
+                    primitive.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 20000');
+                    
+                    console.log('🪑 Created orange chair with metal legs');
+                    
+                } else {
+                    switch(modelName) {
+                        case 'Box 3D':
+                            primitive = document.createElement('a-box');
+                            primitive.setAttribute('position', '0 0.5 0');
+                            primitive.setAttribute('material', 'color: #ff6b6b; opacity: 0.8');
+                            console.log('📦 Created box primitive');
+                            break;
+                        case 'Sphere 3D':
+                            primitive = document.createElement('a-sphere');
+                            primitive.setAttribute('position', '0 0.5 0');
+                            primitive.setAttribute('material', 'color: #3742fa; opacity: 0.8');
+                            console.log('🔵 Created sphere primitive');
+                            break;
+                        case 'Cylinder 3D':
+                            primitive = document.createElement('a-cylinder');
+                            primitive.setAttribute('position', '0 0.5 0');
+                            primitive.setAttribute('material', 'color: #2dd34c; opacity: 0.8');
+                            console.log('🔄 Created cylinder primitive');
+                            break;
+                        case 'Cone 3D':
+                            primitive = document.createElement('a-cone');
+                            primitive.setAttribute('position', '0 0.5 0');
+                            primitive.setAttribute('material', 'color: #ee5a24; opacity: 0.8');
+                            console.log('🔺 Created cone primitive');
+                            break;
+                        case 'Figure':
+                            primitive = document.createElement('a-box');
+                            primitive.setAttribute('position', '0 0.5 0');
+                            primitive.setAttribute('material', 'color: #ff6b6b; opacity: 0.8');
+                            primitive.setAttribute('width', '0.8');
+                            primitive.setAttribute('height', '1.2');
+                            primitive.setAttribute('depth', '0.4');
+                            console.log('👤 Created figure primitive (box)');
+                            break;
+                        case 'Animasi':
+                            primitive = document.createElement('a-sphere');
+                            primitive.setAttribute('position', '0 0.5 0');
+                            primitive.setAttribute('material', 'color: #3742fa; opacity: 0.8');
+                            primitive.setAttribute('radius', '0.6');
+                            console.log('🎬 Created animation primitive (sphere)');
+                            break;
+                        default:
+                            primitive = document.createElement('a-box');
+                            primitive.setAttribute('position', '0 0.5 0');
+                            primitive.setAttribute('material', 'color: #ff6b6b; opacity: 0.8');
+                            console.log('📦 Created default box primitive');
+                    }
                 }
                 
                 console.log('✅ Primitive model created:', primitive);
@@ -1028,14 +1232,65 @@
                 this.updateStatus('Model 3D tampil - Gunakan navigasi untuk ganti model');
                 console.log('✅ Desktop model visibility set to true');
                 
+                // Show target circle for chair model
+                if (this.models[this.currentModelIndex].name === 'Kursi Orange') {
+                    this.showTargetCircle();
+                }
+                
                 // Debug: Check if model has children
                 console.log('🔍 Desktop model children count:', this.desktopModel.children.length);
                 console.log('🔍 Desktop model innerHTML:', this.desktopModel.innerHTML);
                 
-                // Force show model even if no children
+                // Ensure model is always visible
                 if (this.desktopModel.children.length === 0) {
-                    console.log('⚠️ No children in desktop model, loading fallback');
-                    this.loadPrimitiveFallback();
+                    console.log('⚠️ No children in desktop model, loading immediate fallback');
+                    // Load primitive model immediately
+                    const primitive = this.createPrimitiveModel('Box 3D');
+                    primitive.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 2000');
+                    this.desktopModel.appendChild(primitive);
+                    console.log('✅ Immediate fallback primitive loaded');
+                }
+                
+                // Force visibility
+                this.desktopModel.setAttribute('visible', 'true');
+                console.log('✅ Desktop model forced to be visible');
+            }
+            
+            showTargetCircle() {
+                const targetCircle = document.getElementById('target-circle');
+                if (targetCircle) {
+                    targetCircle.setAttribute('visible', 'true');
+                    console.log('🎯 Target circle shown');
+                }
+            }
+            
+            hideTargetCircle() {
+                const targetCircle = document.getElementById('target-circle');
+                if (targetCircle) {
+                    targetCircle.setAttribute('visible', 'false');
+                    console.log('🎯 Target circle hidden');
+                }
+            }
+            
+            ensureModelVisible() {
+                console.log('🔍 Ensuring model is visible');
+                
+                // Force load a primitive model if nothing exists
+                if (!this.desktopModel || this.desktopModel.children.length === 0) {
+                    console.log('⚠️ No model in desktop, loading primitive fallback immediately');
+                    
+                    // Clear and add primitive model
+                    if (this.desktopModel) {
+                        this.desktopModel.innerHTML = '';
+                        const primitive = this.createPrimitiveModel('Figure');
+                        primitive.setAttribute('animation', 'property: rotation; to: 0 360 0; repeat: indefinite; dur: 2000');
+                        this.desktopModel.appendChild(primitive);
+                        this.desktopModel.setAttribute('visible', 'true');
+                        console.log('✅ Primitive model forced into desktop view');
+                    }
+                } else {
+                    console.log('✅ Model exists, ensuring visibility');
+                    this.desktopModel.setAttribute('visible', 'true');
                 }
             }
             
@@ -1068,6 +1323,57 @@
                 this.updateModelCounter();
                 this.initGallery(); // Refresh gallery to show active state
                 closeGallery();
+            }
+            
+            interactWithModel() {
+                console.log('📷 Interacting with model');
+                const currentModel = this.models[this.currentModelIndex];
+                
+                if (currentModel.name === 'Kursi Orange') {
+                    // Simulate taking a photo or placing the chair
+                    this.updateStatus('📷 Foto kursi berhasil diambil!');
+                    
+                    // Add a flash effect
+                    this.addFlashEffect();
+                    
+                    // Reset status after 2 seconds
+                    setTimeout(() => {
+                        this.updateStatus('Kursi Orange siap untuk ditempatkan');
+                    }, 2000);
+                } else {
+                    this.updateStatus('📷 Foto model berhasil diambil!');
+                    setTimeout(() => {
+                        this.updateStatus('Model 3D tampil - Gunakan navigasi untuk ganti model');
+                    }, 2000);
+                }
+            }
+            
+            addFlashEffect() {
+                // Create flash effect
+                const flash = document.createElement('div');
+                flash.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: white;
+                    opacity: 0.8;
+                    z-index: 9999;
+                    pointer-events: none;
+                `;
+                document.body.appendChild(flash);
+                
+                // Fade out flash
+                let opacity = 0.8;
+                const fadeOut = setInterval(() => {
+                    opacity -= 0.1;
+                    flash.style.opacity = opacity;
+                    if (opacity <= 0) {
+                        clearInterval(fadeOut);
+                        document.body.removeChild(flash);
+                    }
+                }, 50);
             }
             
             previousModel() {
@@ -1123,6 +1429,10 @@
             document.getElementById('gallery-modal').style.display = 'none';
         }
         
+        function interactWithModel() {
+            if (app) app.interactWithModel();
+        }
+        
         // Initialize app function
         function initializeApp() {
             console.log('🎬 Initializing AR Fashion Gallery...');
@@ -1161,7 +1471,7 @@
                 setTimeout(() => {
                     const loadingElement = document.getElementById('loading');
                     if (loadingElement && loadingElement.style.display !== 'none') {
-                        console.log('⚠️ Loading screen still visible after 3 seconds, forcing hide');
+                        console.log('⚠️ Loading screen still visible after 2 seconds, forcing hide');
                         loadingElement.style.display = 'none';
                         
                         // Try to show desktop model if on desktop
@@ -1170,16 +1480,22 @@
                             app.forceDesktopMode();
                         }
                     }
-                }, 2000);
+                }, 1500);
                 
                 // Early fallback for desktop mode
                 if (app && !app.isMobile) {
                     setTimeout(() => {
                         if (!app.sceneLoaded) {
-                            console.log('🖥️ Early desktop fallback - scene not loaded in 1 second');
+                            console.log('🖥️ Early desktop fallback - scene not loaded in 800ms');
                             app.forceDesktopMode();
                         }
-                    }, 1000);
+                    }, 800);
+                    
+                    // Additional fallback to ensure model is always visible
+                    setTimeout(() => {
+                        console.log('🖥️ Additional desktop fallback - ensuring model visibility');
+                        app.ensureModelVisible();
+                    }, 1200);
                 }
                 
             } catch (error) {
@@ -1254,7 +1570,7 @@
                 // Add a longer delay to ensure Three.js scripts are loaded
                 setTimeout(() => {
                     initializeAppWithThree();
-                }, 500);
+                }, 300);
         });
         
         // Alternative: Also try when window is fully loaded
