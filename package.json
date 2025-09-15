@@ -9,7 +9,10 @@
     "lint": "next lint",
     "export": "next build && next export",
     "deploy": "npm run build && ./deploy.sh",
-    "deploy:manual": "npm run build"
+    "deploy:manual": "npm run build",
+    "setup:subdomain": "./setup-domain.sh subdomain",
+    "setup:domain": "./setup-domain.sh domain",
+    "setup:folder": "./setup-domain.sh folder"
   },
   "dependencies": {
     "next": "^14.2.32",
