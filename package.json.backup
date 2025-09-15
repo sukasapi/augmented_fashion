@@ -27,7 +27,8 @@
     "deploy:cpanel:folder": "./deploy-cpanel.sh --type folder",
     "deploy:cpanel:subdomain": "./deploy-cpanel.sh --type subdomain",
     "deploy:cpanel:domain": "./deploy-cpanel.sh --type domain",
-    "upload:cpanel": "./upload-cpanel.sh"
+    "upload:cpanel": "./upload-cpanel.sh",
+    "fix:nodejs": "./fix-nodejs-version.sh"
   },
   "dependencies": {
     "next": "^12.3.4",

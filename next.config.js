@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Optimize for production deployment
-  output: 'export',
+  // Next.js 12 compatible configuration
   trailingSlash: true,
   images: {
     domains: ['modelviewer.dev'],
