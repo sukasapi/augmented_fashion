@@ -6,13 +6,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:prod": "NODE_ENV=production node server.js",
+    "start:pm2": "pm2 start ecosystem.config.js --env production",
+    "stop:pm2": "pm2 stop augmented-fashion",
+    "restart:pm2": "pm2 restart augmented-fashion",
+    "logs:pm2": "pm2 logs augmented-fashion",
+    "monitor:pm2": "pm2 monit",
     "lint": "next lint",
     "export": "next build && next export",
     "deploy": "npm run build && ./deploy.sh",
     "deploy:manual": "npm run build",
+    "deploy:prod": "npm run build && ./start-production.sh",
     "setup:subdomain": "./setup-domain.sh subdomain",
     "setup:domain": "./setup-domain.sh domain",
-    "setup:folder": "./setup-domain.sh folder"
+    "setup:folder": "./setup-domain.sh folder",
+    "health": "curl http://localhost:3000/health"
   },
   "dependencies": {
     "next": "^14.2.32",
